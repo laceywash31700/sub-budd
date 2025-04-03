@@ -46,7 +46,7 @@ const subscriptionSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["Active", "Cancelled", "Expired"],
+      enum: ["Active", "Canceled", "Expired"],
       default: "Active",
     },
     startDate: {
@@ -92,9 +92,9 @@ subscriptionSchema.pre("validate", function (next) {
   }
 
   // Update status if renewalDate is past
-  if (this.renewalDate && this.renewalDate < new Date()) {
-    this.status = 'Expired';
-  }
+  // if (this.renewalDate && this.renewalDate < new Date()) {
+  //   this.status = 'Expired';
+  // }
   next(); // Required!
 });
 
