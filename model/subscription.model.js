@@ -78,8 +78,9 @@ const subscriptionSchema = new mongoose.Schema(
 );
 
 // Auto-calculate renewal date if missing.
-subscriptionSchema.pre("save", function (next) {
-  if (!this.renewalDate) {
+subscriptionSchema.pre("validate", function (next) {
+  // Auto-set renewalDate if missing (works for updates, but not initial creation)
+  if (!this.renewalDate && this.startDate && this.frequency) {
     const renewalPeriods = {
       daily: 1,
       weekly: 7,
@@ -90,11 +91,11 @@ subscriptionSchema.pre("save", function (next) {
     this.renewalDate.setDate(this.renewalDate.getDate() + renewalPeriods[this.frequency]);
   }
 
-// Auto-update the status if the renewal date has passed.
- if(this.renewalDate , new Date()){
+  // Update status if renewalDate is past
+  if (this.renewalDate && this.renewalDate < new Date()) {
     this.status = 'Expired';
-
-}
+  }
+  next(); // Required!
 });
 
 const Subscription = mongoose.model("Subscription", subscriptionSchema);
