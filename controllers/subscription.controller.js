@@ -1,5 +1,6 @@
 import Subscription from "../model/subscription.model.js";
 
+// NOTE: should create Subscription from req.body and add them to database. 
 export const createSubscription = async (req, res, next) => {
   try {
     const subscription = await Subscription.create({
@@ -15,6 +16,7 @@ export const createSubscription = async (req, res, next) => {
   }
 };
 
+// NOTE: should get subscriptions from specific user.
 export const getUserSubscriptions = async (req, res, next) => {
   try {
 
@@ -98,6 +100,7 @@ export const updateSubscription = async (req, res, next) => {
 };
 
 // NOTE: should taken in an subscription id and update the status of the subscription to "Canceled"
+// NOTE: eventually will integrate an api for canceling subscriptions on google 
 export const cancelSubscription = async (req, res, next) => {
   try {
     const subscription = await Subscription.findById(req.params.id);
