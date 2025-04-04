@@ -9,21 +9,21 @@ import {
   deleteSubscription
 } from "../controllers/subscription.controller.js";
 
-const subscriptionRoutes = Router();
+const subscriptionRouter = Router();
 
-subscriptionRoutes.post("/", authorize, createSubscription);
-subscriptionRoutes.get("/user/:id", authorize, getUserSubscriptions);
-subscriptionRoutes.get("/:id", authorize, getUserSubscriptionDetails);
-subscriptionRoutes.put("/:id", authorize, updateSubscription);
-subscriptionRoutes.put("/:id/cancel",authorize, cancelSubscription);
-subscriptionRoutes.delete("/:id", authorize, deleteSubscription);
+// Path: /api/v1/auth
+subscriptionRouter.post("/", authorize, createSubscription);
+subscriptionRouter.get("/user/:id", authorize, getUserSubscriptions);
+subscriptionRouter.get("/:id", authorize, getUserSubscriptionDetails);
+subscriptionRouter.put("/:id", authorize, updateSubscription);
+subscriptionRouter.put("/:id/cancel",authorize, cancelSubscription);
+subscriptionRouter.delete("/:id", authorize, deleteSubscription);
 
-subscriptionRoutes.get("/", (req, res) =>
+subscriptionRouter.get("/", (req, res) =>
   res.send({ title: "GET all subscriptions" })
 );
-
-subscriptionRoutes.get("/upcoming-renewals", (req, res) =>
+subscriptionRouter.get("/upcoming-renewals", (req, res) =>
   res.send({ title: "GET all subscription renewals" })
 );
 
-export default subscriptionRoutes;
+export default subscriptionRouter;

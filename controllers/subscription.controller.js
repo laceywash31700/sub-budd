@@ -1,11 +1,24 @@
+import { workflowClient } from "../config/upstash.js";
+import { SERVER_URL } from "../config/env.js";
 import Subscription from "../model/subscription.model.js";
 
-// NOTE: should create Subscription from req.body and add them to database. 
+// NOTE: should create Subscription from req.body and add them to database.
 export const createSubscription = async (req, res, next) => {
   try {
     const subscription = await Subscription.create({
       ...req.body,
       user: req.user._id,
+    });
+
+    await workflowClient.trigger({
+      url: `${SERVER_URL}/api/v1/workflows/subscription/reminder`,
+      body: {
+        subscriptionId: subscription.id,
+      },
+      headers: {
+        "content-type": "application/json",
+      },
+      retries: 0,
     });
 
     delete subscription.__v;
@@ -19,9 +32,10 @@ export const createSubscription = async (req, res, next) => {
 // NOTE: should get subscriptions from specific user.
 export const getUserSubscriptions = async (req, res, next) => {
   try {
-
     if (req.user.id !== req.params.id) {
-      const error = new Error("You are not authorized to see these this subscriptions: Access Denied");
+      const error = new Error(
+        "You are not authorized to see these this subscriptions: Access Denied"
+      );
       error.status = 401;
       throw error;
     }
@@ -77,58 +91,72 @@ export const updateSubscription = async (req, res, next) => {
     }
 
     const updates = Object.keys(req.body);
-    const allowedUpdates = ['name', 'price', 'currency', 'frequency', 'category', 'paymentMethod', 'status', 'renewalDate'];
-    const isValidOperation = updates.every(update => allowedUpdates.includes(update));
+    const allowedUpdates = [
+      "name",
+      "price",
+      "currency",
+      "frequency",
+      "category",
+      "paymentMethod",
+      "status",
+      "renewalDate",
+    ];
+    const isValidOperation = updates.every((update) =>
+      allowedUpdates.includes(update)
+    );
 
     if (!isValidOperation) {
-      return res.status(400).json({ message: 'Invalid updates!' });
+      return res.status(400).json({ message: "Invalid updates!" });
     }
 
-    updates.forEach(update => subscription[update] = req.body[update]);
+    updates.forEach((update) => (subscription[update] = req.body[update]));
     await subscription.save();
 
-   
     subscription.toObject();
-    delete subscription.__v; 
+    delete subscription.__v;
 
     res.status(200).json({ success: true, data: subscription });
-
-
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
 // NOTE: should taken in an subscription id and update the status of the subscription to "Canceled"
-// NOTE: eventually will integrate an api for canceling subscriptions on google 
+// NOTE: eventually will integrate an api for canceling subscriptions on google
 export const cancelSubscription = async (req, res, next) => {
   try {
     const subscription = await Subscription.findById(req.params.id);
 
     // validates ownership and if there is a subscription
-    if (!subscription) return res.status(404).json({ message: 'Subscription not found' });
-    
+    if (!subscription)
+      return res.status(404).json({ message: "Subscription not found" });
+
     if (req.user.id !== subscription.user.toString()) {
-      return res.status(403).json({ 
-        message: "You are not authorized to cancel this subscription: Access Denied" 
+      return res.status(403).json({
+        message:
+          "You are not authorized to cancel this subscription: Access Denied",
       });
     }
 
     // Validates if there is a status in the body and if it is set to "Canceled"
-    if (req.body.status && req.body.status !== 'Canceled') {
-      return res.status(400).json({ 
-        message: 'Only "canceled" status is allowed for this operation' 
+    if (req.body.status && req.body.status !== "Canceled") {
+      return res.status(400).json({
+        message: 'Only "canceled" status is allowed for this operation',
       });
     }
 
     // Update and save
-    subscription.status = 'Canceled';
+    subscription.status = "Canceled";
     subscription.updatedAt = new Date();
     await subscription.save();
 
-
-    res.status(200).json({success: true, data: subscription, message: `Your subscription to ${subscription.name} has been updated to Canceled`});
-
+    res
+      .status(200)
+      .json({
+        success: true,
+        data: subscription,
+        message: `Your subscription to ${subscription.name} has been updated to Canceled`,
+      });
   } catch (error) {
     next(error);
   }
@@ -140,18 +168,21 @@ export const deleteSubscription = async (req, res, next) => {
     const subscription = await Subscription.findById(req.params.id);
 
     // validates ownership and if there is a subscription
-    if (!subscription) return res.status(404).json({ message: 'Subscription not found' });
-    
+    if (!subscription)
+      return res.status(404).json({ message: "Subscription not found" });
+
     if (req.user.id !== subscription.user.toString()) {
-      return res.status(403).json({ 
-        message: "You are not authorized to delete this subscription: Access Denied" 
+      return res.status(403).json({
+        message:
+          "You are not authorized to delete this subscription: Access Denied",
       });
     }
     // Deletes subscription
     await subscription.deleteOne();
 
-    res.status(204).json({success: true, message: "Your subscription has been deleted"});
-
+    res
+      .status(204)
+      .json({ success: true, message: "Your subscription has been deleted" });
   } catch (error) {
     next(error);
   }
