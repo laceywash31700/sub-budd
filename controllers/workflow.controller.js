@@ -3,6 +3,7 @@ import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const { serve } = require("@upstash/workflow/express");
 import Subscription from "../model/subscription.model.js";
+import { sendReminderEmail } from "../ultis/send-email.js";
 
 // days before renewal date to send reminder
 const REMINDERS = [7, 5, 2, 1];
@@ -41,12 +42,9 @@ export const sendReminders = serve(async (context) => {
       );
     }
     await triggerReminder(context, `Reminder ${daysBefore} days before`);
-
-    
   }
   /////////////////////////////////////////////////////////////////////////////
 });
-
 
 // Helper Functions
 const fetchSubscription = async (context, subscriptionId) => {
@@ -64,9 +62,12 @@ const sleepUntilNextReminder = async (context, label, date) => {
 };
 
 const triggerReminder = async (context, label) => {
-  return await context.run(label, () => {
+  return await context.run(label, async () => {
     console.log(`Trigger ${label} reminder`);
-    // send email, SMS, push notification, etc.
+    await sendReminderEmail({
+      to: subscription.user.email,
+      type: reminder.label.subscription,
+    });
   });
 };
-// ////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
