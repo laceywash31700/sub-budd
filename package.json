@@ -1,11 +1,11 @@
 {
   "name": "sub-bud",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js"
+    "dev": "kill-port 5500 && nodemon app.js"
   },
   "dependencies": {
     "@arcjet/node": "^1.0.0-beta.5",
@@ -21,12 +21,14 @@
     "jsonwebtoken": "^9.0.2",
     "mongodb": "^6.15.0",
     "mongoose": "^8.12.1",
-    "morgan": "~1.9.1"
+    "morgan": "~1.9.1",
+    "nodemailer": "^6.10.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.22.0",
     "eslint": "^9.22.0",
     "globals": "^16.0.0",
+    "kill-port": "^2.0.1",
     "nodemon": "^3.1.9"
   }
 }

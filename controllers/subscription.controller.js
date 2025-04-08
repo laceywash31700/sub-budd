@@ -10,25 +10,29 @@ export const createSubscription = async (req, res, next) => {
       user: req.user._id,
     });
 
-    await workflowClient.trigger({
+   
+    
+    // Upstash will handle the JSON.stringify internally
+   const {workflowRunId} = await workflowClient.trigger({
       url: `${SERVER_URL}/api/v1/workflows/subscription/reminder`,
-      body: {
-        subscriptionId: subscription.id,
-      },
+      body: { subscriptionId: subscription._id}, // Pass raw object here
       headers: {
         "content-type": "application/json",
       },
       retries: 0,
     });
 
-    delete subscription.__v;
+    
 
-    return res.status(201).json({ success: true, data: subscription });
+    return res.status(201).json({ 
+      success: true, 
+      data: {subscription, workflowRunId } 
+    });
+
   } catch (error) {
     next(error);
   }
 };
-
 // NOTE: should get subscriptions from specific user.
 export const getUserSubscriptions = async (req, res, next) => {
   try {
@@ -150,13 +154,11 @@ export const cancelSubscription = async (req, res, next) => {
     subscription.updatedAt = new Date();
     await subscription.save();
 
-    res
-      .status(200)
-      .json({
-        success: true,
-        data: subscription,
-        message: `Your subscription to ${subscription.name} has been updated to Canceled`,
-      });
+    res.status(200).json({
+      success: true,
+      data: subscription,
+      message: `Your subscription to ${subscription.name} has been updated to Canceled`,
+    });
   } catch (error) {
     next(error);
   }
