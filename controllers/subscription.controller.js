@@ -78,7 +78,9 @@ export const getUserSubscriptions = async (req, res, next) => {
       error.status = 401;
       throw error;
     }
-
+    // Processes renewals first
+    await Subscription.processRenewals(req.params.id);
+     // Then get updated subscriptions
     const subscriptions = await Subscription.find({ user: req.params.id });
 
     delete subscriptions.__v;
@@ -228,52 +230,29 @@ export const deleteSubscription = async (req, res, next) => {
 export const getUpcomingRenewals = async (req, res, next) => {
   try {
     const currentDate = dayjs();
-    const lookaheadWindow = currentDate.add(30, "day");
+    const lookaheadWindow = currentDate.add(30, 'day');
 
-    // Query already ensures only current user's subscriptions
     const subscriptions = await Subscription.find({
       user: req.user.id,
       status: "Active",
-    });
-
-    if (subscriptions.length === 0) {
-      return res.status(200).json({
-        success: true,
-        count: 0,
-        message: "No active subscriptions found",
-        data: []
-      });
-    }
-
-    const upcomingRenewals = [];
-
-    for (const sub of subscriptions) {
-      try {
-        const nextRenewal = calculateNextRenewal(sub.startDate, sub.frequency);
-
-        if (
-          nextRenewal.isSameOrAfter(currentDate) &&
-          nextRenewal.isSameOrBefore(lookaheadWindow)
-        ) {
-          upcomingRenewals.push({
-            ...sub.toObject(),
-            nextRenewal: nextRenewal.format("YYYY-MM-DD"),
-            daysUntil: nextRenewal.diff(currentDate, "day"),
-            frequency: sub.frequency,
-          });
-        }
-      } catch (error) {
-        console.error(`Error processing subscription ${sub._id}:`, error);
+      renewalDate: {
+        $gte: currentDate.toDate(),
+        $lte: lookaheadWindow.toDate()
       }
-    }
+    }).sort({ renewalDate: 1 });
 
-    upcomingRenewals.sort((a, b) => a.daysUntil - b.daysUntil);
+    const formattedRenewals = subscriptions.map(sub => ({
+      ...sub.toObject(),
+      nextRenewal: dayjs(sub.renewalDate).format("YYYY-MM-DD"),
+      daysUntil: dayjs(sub.renewalDate).diff(currentDate, "day"),
+      frequency: sub.frequency
+    }));
 
     res.status(200).json({
       success: true,
-      count: upcomingRenewals.length,
+      count: formattedRenewals.length,
       windowDays: 30,
-      data: upcomingRenewals,
+      data: formattedRenewals
     });
   } catch (error) {
     next(error);
