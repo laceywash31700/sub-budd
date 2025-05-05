@@ -13,7 +13,7 @@ import {
 
 const subscriptionRouter = Router();
 
-// Path: /api/v1/auth
+// Path: /api/v1/subscriptions
 subscriptionRouter.post("/", authorize, createSubscription);
 subscriptionRouter.get("/user/:id", authorize, getUserSubscriptions);
 subscriptionRouter.get("/:id", authorize, getUserSubscriptionDetails);
