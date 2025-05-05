@@ -14,7 +14,7 @@ const app = express();
 
 // 1. CORS Configuration 
 app.use(cors({
-  origin: 'http://127.0.0.1:5174', 
+  origin: 'http://127.0.0.1:5173', 
   credentials: true, // Required for cookies/sessions
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allowed methods
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'] // Allowed headers

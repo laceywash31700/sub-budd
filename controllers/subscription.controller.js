@@ -1,6 +1,46 @@
 import { workflowClient } from "../config/upstash.js";
 import { SERVER_URL } from "../config/env.js";
 import Subscription from "../model/subscription.model.js";
+import dayjs from "dayjs";
+import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
+import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
+
+dayjs.extend(isSameOrBefore);
+dayjs.extend(isSameOrAfter);
+
+const calculateNextRenewal = (startDate, frequency) => {
+  const start = dayjs(startDate);
+  const now = dayjs();
+  let nextDate = start;
+
+  // Handle different frequencies
+  switch (frequency) {
+    case "daily":
+      nextDate = start.add(Math.ceil(now.diff(start, "day", true)), "day");
+      break;
+
+    case "weekly":
+      nextDate = start.add(Math.ceil(now.diff(start, "week", true)), "week");
+      break;
+
+    case "monthly":
+      nextDate = start.add(Math.ceil(now.diff(start, "month", true)), "month");
+      // Handle end-of-month edge cases
+      if (nextDate.date() !== start.date()) {
+        nextDate = nextDate.endOf("month");
+      }
+      break;
+
+    case "yearly":
+      nextDate = start.add(Math.ceil(now.diff(start, "year", true)), "year");
+      break;
+
+    default:
+      throw new Error(`Invalid frequency: ${frequency}`);
+  }
+
+  return nextDate;
+};
 
 // NOTE: should create Subscription from req.body and add them to database.
 export const createSubscription = async (req, res, next) => {
@@ -10,25 +50,20 @@ export const createSubscription = async (req, res, next) => {
       user: req.user._id,
     });
 
-   
-    
     // Upstash will handle the JSON.stringify internally
-   const {workflowRunId} = await workflowClient.trigger({
+    const { workflowRunId } = await workflowClient.trigger({
       url: `${SERVER_URL}/api/v1/workflows/subscription/reminder`,
-      body: { subscriptionId: subscription._id}, // Pass raw object here
+      body: { subscriptionId: subscription._id }, // Pass raw object here
       headers: {
         "content-type": "application/json",
       },
       retries: 0,
     });
 
-    
-
-    return res.status(201).json({ 
-      success: true, 
-      data: {subscription, workflowRunId } 
+    return res.status(201).json({
+      success: true,
+      data: { subscription, workflowRunId },
     });
-
   } catch (error) {
     next(error);
   }
@@ -185,6 +220,61 @@ export const deleteSubscription = async (req, res, next) => {
     res
       .status(204)
       .json({ success: true, message: "Your subscription has been deleted" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getUpcomingRenewals = async (req, res, next) => {
+  try {
+    const currentDate = dayjs();
+    const lookaheadWindow = currentDate.add(30, "day");
+
+    // Query already ensures only current user's subscriptions
+    const subscriptions = await Subscription.find({
+      user: req.user.id,
+      status: "Active",
+    });
+
+    if (subscriptions.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        message: "No active subscriptions found",
+        data: []
+      });
+    }
+
+    const upcomingRenewals = [];
+
+    for (const sub of subscriptions) {
+      try {
+        const nextRenewal = calculateNextRenewal(sub.startDate, sub.frequency);
+
+        if (
+          nextRenewal.isSameOrAfter(currentDate) &&
+          nextRenewal.isSameOrBefore(lookaheadWindow)
+        ) {
+          upcomingRenewals.push({
+            ...sub.toObject(),
+            nextRenewal: nextRenewal.format("YYYY-MM-DD"),
+            daysUntil: nextRenewal.diff(currentDate, "day"),
+            frequency: sub.frequency,
+          });
+        }
+      } catch (error) {
+        console.error(`Error processing subscription ${sub._id}:`, error);
+      }
+    }
+
+    upcomingRenewals.sort((a, b) => a.daysUntil - b.daysUntil);
+
+    res.status(200).json({
+      success: true,
+      count: upcomingRenewals.length,
+      windowDays: 30,
+      data: upcomingRenewals,
+    });
   } catch (error) {
     next(error);
   }

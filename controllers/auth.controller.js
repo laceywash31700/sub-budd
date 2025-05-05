@@ -11,7 +11,7 @@ export const signUp = async (req, res, next) => {
   session.startTransaction();
 
   try {
-    const { name, email, password } = req.body;
+    const { firstName, lastName , email, password } = req.body;
     console.log(req.body);
 
     // checks if user is in DB LMW
@@ -28,7 +28,7 @@ export const signUp = async (req, res, next) => {
     const hashPassword = await bcrypt.hash(password, salt);
 
     const newUsers = await User.create(
-      [{ name, email, password: hashPassword }],
+      [{ firstName, lastName , email, password: hashPassword }],
       { session }
     );
 
@@ -58,7 +58,6 @@ export const signUp = async (req, res, next) => {
 export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-console.log(email)
      
      const user = await User.findOne({ email });
 

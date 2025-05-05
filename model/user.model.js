@@ -3,16 +3,23 @@ import mongoose from "mongoose";
 // EX JSON.
 //  {"name": "John Doe", "email": "johnnyboy@gmail.com", "password":"password1"}
 const userSchema = new mongoose.Schema({
-    name: {
+    firstName: {
         type: String, 
-        required: [true, 'User Name is required.'],
+        required: [true, 'User\'s first name is required.'],
+        trim: true,
+        minLength: 2,
+        maxLength: 50,
+    },
+    lastName: {
+        type: String, 
+        required: [true, 'User\'s last name is required.'],
         trim: true,
         minLength: 2,
         maxLength: 50,
     },
     email: {
         type: String, 
-        required: [true, 'User Email is required.'],
+        required: [true, 'User\'s Email is required.'],
         unique: true,
         trim: true,
         lowercase: true,
@@ -20,7 +27,7 @@ const userSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        required: [true, 'User Password is required.'],
+        required: [true, 'User\'s password is required.'],
         minLength: 6,
     }
 }, {timestamps: true});
