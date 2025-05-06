@@ -8,39 +8,6 @@ import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
 dayjs.extend(isSameOrBefore);
 dayjs.extend(isSameOrAfter);
 
-const calculateNextRenewal = (startDate, frequency) => {
-  const start = dayjs(startDate);
-  const now = dayjs();
-  let nextDate = start;
-
-  // Handle different frequencies
-  switch (frequency) {
-    case "daily":
-      nextDate = start.add(Math.ceil(now.diff(start, "day", true)), "day");
-      break;
-
-    case "weekly":
-      nextDate = start.add(Math.ceil(now.diff(start, "week", true)), "week");
-      break;
-
-    case "monthly":
-      nextDate = start.add(Math.ceil(now.diff(start, "month", true)), "month");
-      // Handle end-of-month edge cases
-      if (nextDate.date() !== start.date()) {
-        nextDate = nextDate.endOf("month");
-      }
-      break;
-
-    case "yearly":
-      nextDate = start.add(Math.ceil(now.diff(start, "year", true)), "year");
-      break;
-
-    default:
-      throw new Error(`Invalid frequency: ${frequency}`);
-  }
-
-  return nextDate;
-};
 
 // NOTE: should create Subscription from req.body and add them to database.
 export const createSubscription = async (req, res, next) => {
