@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import dayjs from 'dayjs';
+import dayjs from 'dayjs-with-plugins';
 
 const subscriptionSchema = new mongoose.Schema(
   {
