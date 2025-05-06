@@ -1,7 +1,7 @@
 import { workflowClient } from "../config/upstash.js";
 import { SERVER_URL } from "../config/env.js";
 import Subscription from "../model/subscription.model.js";
-import dayjs from "dayjs-with-plugins";
+import dayjs from "dayjs";
 import isSameOrBefore from "dayjs/plugin/isSameOrBefore.js";
 import isSameOrAfter from "dayjs/plugin/isSameOrAfter.js";
 
