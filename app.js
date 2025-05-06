@@ -9,15 +9,18 @@ import subscriptionRouter from "./routes/subscription.routes.js";
 import workflowRouter from "./routes/workflow.routes.js";
 import { arcjetMW } from "./middleware/arcjet.middleware.js";
 import { PORT } from "./config/env.js";
+import { TRUST_PROXY } from "./config/env.js";
 
 const app = express();
 
+const proxyConfig = TRUST_PROXY === "true" ? true : 
+  Number(TRUST_PROXY) || 1;
 
-app.set('trust proxy', 1); 
+app.set('trust proxy', proxyConfig);  
 
 // 1. CORS Configuration 
 app.use(cors({
-  origin: 'https://sub-bud.netlify.app/', 
+  origin: 'https://sub-bud.netlify.app', 
   credentials: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'] 
