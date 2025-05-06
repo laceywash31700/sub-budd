@@ -12,6 +12,9 @@ import { PORT } from "./config/env.js";
 
 const app = express();
 
+
+app.set('trust proxy', 1); 
+
 // 1. CORS Configuration 
 app.use(cors({
   origin: 'https://sub-bud.netlify.app/', 

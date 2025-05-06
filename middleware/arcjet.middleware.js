@@ -2,7 +2,13 @@ import { aj } from "../config/acrjet.js";
 
 export const arcjetMW = async (req, res, next) => {
   try {
-    const decision = await aj.protect(req, {requested: 1 });
+    const decision = await arcjet.protect({
+      ...,
+      request: {
+        ...req,
+        ip: req.ip || req.socket.remoteAddress,
+      },
+    });
 
     if (decision.isDenied()) {
       console.log("Arcjet Denial Reason:", decision.reason); 
