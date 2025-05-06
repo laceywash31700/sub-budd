@@ -5,7 +5,7 @@ export const arcjetMW = async (req, res, next) => {
     const decision = await aj.protect(req, {requested: 1 });
 
     if (decision.isDenied()) {
-      console.log("Arcjet Denial Reason:", decision.reason); // Log the reason
+      console.log("Arcjet Denial Reason:", decision.reason); 
       if (decision.reason.isRateLimit())
         return res.status(409).json({ error: "Rate limit exceeded" });
       if (decision.reason.isBot())

@@ -14,7 +14,7 @@ export const signUp = async (req, res, next) => {
     const { firstName, lastName , email, password } = req.body;
     console.log(req.body);
 
-    // checks if user is in DB LMW
+    // checks if user is in DB :LMW
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
