@@ -1,5 +1,5 @@
 import arcjet, { shield, detectBot, tokenBucket } from "@arcjet/node";
-import { NODE_ENV, TRUST_PROXY } from "../config/env.js";
+import { NODE_ENV, TRUST_PROXY } from "./env.js";
 import { ARCJET_KEY } from "./env.js";
 
 // Configure proxy trust first
