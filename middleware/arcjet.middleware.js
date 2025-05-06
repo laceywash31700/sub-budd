@@ -2,8 +2,8 @@ import { aj } from "../config/acrjet.js";
 
 export const arcjetMW = async (req, res, next) => {
   try {
-    const decision = await arcjet.protect({
-      ...,
+    const decision = await aj.protect({
+      req,
       request: {
         ...req,
         ip: req.ip || req.socket.remoteAddress,
