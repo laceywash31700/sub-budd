@@ -54,7 +54,7 @@ const fetchSubscription = async (context, subscriptionId) => {
   return await context.run("get subscription", async () => {
     return await Subscription.findById(subscriptionId).populate(
       "user",
-      "name email"
+      "firstName email"
     );
   });
 };
@@ -67,7 +67,6 @@ const sleepUntilNextReminder = async (context, label, date) => {
 const triggerReminder = async (context, label, subscription) => {
   return await context.run(label, async () => {
     console.log(`Trigger ${label} reminder`);
-    
     await sendReminderEmail({
       to: subscription.user.email,
       type: label,
