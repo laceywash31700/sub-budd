@@ -10,7 +10,7 @@ export const sendReminderEmail = async ({to, type, subscription}) => {
     if(!template) throw new Error('Invalid email type');
 
     const mailInfo = {
-        userName: subscription.user.name,
+        userName: subscription.user.firstName,
         subscriptionName: subscription.name,
         renewalDate: dayjs(subscription.renewalDate).format('MMM D, YYYY'),
         planName: subscription.name,

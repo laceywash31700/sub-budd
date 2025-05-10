@@ -20,7 +20,7 @@ app.set('trust proxy', proxyConfig);
 
 // 1. CORS Configuration 
 app.use(cors({
-  origin: 'https://sub-bud.netlify.app', 
+  origin: ['https://sub-bud.netlify.app', 'http://127.0.0.1:5173'], 
   credentials: true, 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], 
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'] 
